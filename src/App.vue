@@ -1,66 +1,68 @@
 <template>
     <v-app>
-        <v-container>
-            <v-card class="indigo accent-2">
-                <v-card-title class="white--text font-italic font-weight-light display-3 justify-center">
-                    TO DO
-                </v-card-title>
-                <v-divider></v-divider>
-                <new-task class="mt-2"/>
-                <v-divider></v-divider>
-                <v-card-text>
-                    <v-tabs v-model="tab" background-color="red lighten-1" grow>
-                        <v-tab class="white--text">
-                            Current tasks
-                        </v-tab>
-                        <v-tab class="white--text">
-                            Completed tasks
-                        </v-tab>
-                        <v-tab class="white--text">
-                            Stoped tasks
-                        </v-tab>
-                        <v-tab class="white--text">
-                            Deleted tasks
-                        </v-tab>
-                    </v-tabs>
-                    <v-tabs-items v-model="tab" class="indigo accent-1">
-                        <v-tab-item class="indigo accent-4">
-                            <task-list :task-list="currentTasks" :list-type="'CURRENT'"/>
-                        </v-tab-item>
-                        <v-tab-item class="indigo accent-4">
-                            <task-list :task-list="completedTasks" :list-type="'COMPLETED'"/>
-                        </v-tab-item>
-                        <v-tab-item class="indigo accent-4">
-                            <task-list :task-list="stopedTasks" :list-type="'STOPED'"/>
-                        </v-tab-item>
-                        <v-tab-item class="indigo accent-4">
-                            <task-list :task-list="deletedTasks" :list-type="'DELETED'"/>
-                        </v-tab-item>
-                    </v-tabs-items>
-                </v-card-text>
-            </v-card>
-        </v-container>
+        <abstract-modal :modalIsActive="dialog" @close="dialog = false"/>
+        <v-app-bar class="teal accent-1" app>
+            <v-toolbar-items>
+                <v-btn text class="teal accent-1">
+                    My App
+                </v-btn>
+            </v-toolbar-items>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+                <v-btn v-if="user != null && user != ''" text class="teal accent-1">
+                    {{user.username}}
+                </v-btn>
+                <v-btn v-if="user != null && user != ''"
+                       href="auth/logout"
+                       @click="logout()"
+                       text
+                       class="teal accent-1">
+                    logout
+                </v-btn>
+                <v-btn v-else text @click="dialog = true" class="teal accent-1">
+                    login
+                </v-btn>
+            </v-toolbar-items>
+        </v-app-bar>
+        <v-content>
+            <v-container>
+                <to-do-card/>
+            </v-container>
+        </v-content>
     </v-app>
 </template>
 
 <script>
-    import TaskList from "./components/TaskList"
-    import NewTask from "./components/NewTask";
-    import {mapState} from 'vuex'
+    import ToDoCard from "./components/ToDoCard"
+    import abstractModal from "./components/modals/abstractModal";
+    import {mapActions, mapMutations, mapState} from 'vuex'
 
     export default {
         name: 'App',
         data() {
             return {
-                tab: null,
+                dialog: false
             }
         },
         components: {
-            TaskList,
-            NewTask
+            ToDoCard,
+            abstractModal
         },
         computed: {
-            ...mapState(['currentTasks', 'completedTasks', 'stopedTasks', 'deletedTasks'])
+            ...mapState(['user'])
+        },
+        created() {
+            this.do()
+        },
+        methods: {
+            ...mapMutations(['logoutMutation']),
+            ...mapActions(['getUserAction']),
+            async do() {
+                await this.getUserAction()
+            },
+            logout() {
+                this.logoutMutation()
+            },
         }
     }
 </script>

@@ -16,7 +16,7 @@
 </template>
 
 <script>
-    import {mapActions} from 'vuex'
+    import {mapActions, mapState} from 'vuex'
 
     export default {
         name: "NewTask",
@@ -27,15 +27,17 @@
                 newTaskText: ""
             }
         },
+        computed: {
+            ...mapState(['tasks'])
+        },
         methods: {
             ...mapActions(['addTaskAction']),
-            tryAddTask() {
-                console.log("lul")
+            async tryAddTask() {
                 if(this.newTaskText != null && this.newTaskText != '') {
-                    this.addTaskAction({
-                        id: null,
+                    await this.addTaskAction({
                         taskText: this.newTaskText,
-                        taskType: 'CURRENT'
+                        taskType: 'CURRENT',
+                        dateTime: new Date()
                     })
                     this.snackbar = true
                     this.newTaskText = ''
