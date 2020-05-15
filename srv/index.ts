@@ -1,67 +1,74 @@
-import express, {Application, Request, Response} from 'express'
+import cors from 'cors'
 import path from "path"
-import {taskActionValidate, taskAddValidate, taskFetchValidate, validateRequest} from './TaskValidator'
-import {Task} from "./data/Task";
-import {TaskType} from "./data/TaskType";
 
-const app = express()
+const cookieParser = require('cookie-parser')
+const passport = require('passport')
+const session = require('express-session')
+const bodyParser = require("body-parser")
+require('./security/PassportConfig')
+
+import express, {Application, Request, Response} from 'express'
+import {logErrors, logEvents} from "./serverUtils/loggers"
+import {errorHandler} from "./serverUtils/Handlers"
+import {connectDatabase, sessionStore} from "./serverUtils/DatabaseConnect"
+import {MainController} from "./controllers/MainController"
+import {AbstractController} from "./controllers/AbstractController"
+import {LoginController} from "./controllers/LoginController"
+import {User} from "./data/User"
+import {UserController} from "./controllers/UserController";
+
+
+const DbConnection = connectDatabase()
+
+const app: Application = express()
+
+app.use(cors());
+
+app.all('/*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header('Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token');
+    next();
+});
+
+const mainController: AbstractController = new MainController()
+const loginController: AbstractController = new LoginController()
+const userController: AbstractController = new UserController()
 
 app.use(express.static(path.resolve("dist/")))
+app.use(express.static('public'));
 
-app.use(express.json());
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(cookieParser());
 
-let data: Array<Task> = [
-    new Task(1, "lul", TaskType.CURRENT),
-    new Task(2, "zulul", TaskType.CURRENT),
-    new Task(3, "megalul", TaskType.CURRENT)
-]
+app.use(session({
+    maxAge: 60 * 60 * 1000,
+    secret: 'keyboa12',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    path: '/*'
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(logEvents);
+app.use(logErrors);
+app.use(errorHandler);
 
 app.get("/", (req: Request, res: Response) => {
     res.sendFile(path.resolve("dist/", "index.html"))
 })
 
-app.get("/api/get", taskFetchValidate(), validateRequest, (req: Request, res: Response) => {
-    let taskListType: TaskType = TaskType[req.query.taskType as keyof typeof TaskType]
-    let resultData: Array<Task> = []
-    resultData = data.filter(t => t.taskType == taskListType)
-    res.json(resultData)
+app.use('/auth', loginController.routerMethods)
+app.use('/user', userController.routerMethods)
+app.use('/api', mainController.routerMethods)
+
+app.get("*", (req: Request, res: Response, next: Function) => {
+    res.redirect('/')
 })
 
-app.post("/api/add", taskAddValidate(), validateRequest, (req: Request, res: Response) => {
-    let taskType: TaskType = TaskType[req.body.taskType as keyof typeof TaskType]
-    let taskText: string = req.body.taskText
-    let newTask = new Task(0, taskText, taskType)
-    data.push(newTask)
-    res.status(201)
-})
-
-app.patch("/api/stop", taskActionValidate(), validateRequest, (req: Request, res: Response) => {
-    let index: number = data.findIndex(t => t.id == req.query.id)
-    data[index].taskType = TaskType.STOPED
-    res.json(data[index])
-})
-
-app.patch("/api/continue", taskActionValidate(), validateRequest, (req: Request, res: Response) => {
-    let index: number = data.findIndex(t => t.id == req.query.id)
-    data[index].taskType = TaskType.CURRENT
-    res.json(data[index])
-})
-
-app.patch("/api/complete", taskActionValidate(), validateRequest, (req: Request, res: Response) => {
-    let index: number = data.findIndex(t => t.id == req.query.id)
-    data[index].taskType = TaskType.COMPLETED
-    res.json(data[index])
-})
-
-app.patch("/api/discard", taskActionValidate(), validateRequest, (req: Request, res: Response) => {
-    let index: number = data.findIndex(t => t.id == req.query.id)
-    data[index].taskType = TaskType.DISCARDED
-    res.json(data[index])
-})
-
-app.patch("/api/delete", taskActionValidate(), validateRequest, (req: Request, res: Response) => {
-    let index: number = data.findIndex(t => t.id == req.query.id)
-    data.slice(index, 1)
-})
-
-app.listen(process.env.PORT || 3000, () => console.log('running...'))
+let PORT = process.env.SERVER_PORT || 3000
+app.listen(PORT, () => console.log(`running on ${PORT}...`))
