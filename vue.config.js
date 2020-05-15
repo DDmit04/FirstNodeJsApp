@@ -5,6 +5,13 @@ module.exports = {
       "serverDir": "./dist/server"
     }
   },
+  devServer: {
+    proxy: {
+      "/": {
+        target: "http://localhost:3000"
+      }
+    }
+  },
   "transpileDependencies": [
     "vuetify"
   ]
