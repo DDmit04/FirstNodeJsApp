@@ -4,6 +4,7 @@ const MongoStore = require('connect-mongo')(session);
 require('dotenv').config()
 
 let DBUrl: string = process.env.MONGODB_URI!
+console.log(process.env.MONGODB_URI)
 
 export function connectDatabase() {
     mongoose.connect(DBUrl, {
