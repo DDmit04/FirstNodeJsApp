@@ -7,7 +7,8 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "express": "nodemon srv/index.ts --watch srv/**",
-    "express:run": "node dist/server/index.js"
+    "express:run": "node dist/server/index.js",
+    "start": "build && node dist/server/index.js"
   },
   "dependencies": {
     "@hasezoey/typegoose": "^5.9.2",
