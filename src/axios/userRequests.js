@@ -1,31 +1,17 @@
 require('dotenv').config();
-const axios = require('axios');
-
-function convertResponse(response) {
-    const data = {
-        data: response.data,
-        status: response.status
-    }
-    return data
-}
+const axios = require('axios')
+import {convertResponse} from "./apiRequests"
 
 export default {
 
     checkUsername: async (username) => {
-        const response = await axios.get('/user/check/username', {
-            params: {
-                username: username
-            }
-        })
+        const response = await axios.get('/user/check/username', { params: {username} })
         const data = convertResponse(response)
         const usernameExists = data.data.userExists
         return usernameExists
     },
     checkEmail: async (email) => {
-        const response = await axios.get('/user/check/email', {
-            params: {
-                email: email
-            } })
+        const response = await axios.get('/user/check/email', { params: {email} })
         const data = convertResponse(response)
         const emailExists = data.data.userExists
         return emailExists
@@ -45,8 +31,4 @@ export default {
         const data = convertResponse(response)
         return data
     },
-    // mergeUserTasks: async (...tasks) => {
-    //
-    // }
-
 }

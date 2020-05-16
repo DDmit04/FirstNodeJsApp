@@ -1,10 +1,16 @@
 require('dotenv').config();
 const axios = require('axios');
 
-function convertResponse(response) {
+export function convertResponse(response) {
     const data = {
         data: response.data,
-        status: response.status
+        status: response.status,
+        statusText: response.statusText,
+        errors:  (response.data && response.data.errors) ? response.data.errors.map(errObj => errObj.msg).join(', ') : '',
+        ok: function () {
+            return (this.statusText === 'OK' || this.statusText === 'Created')
+                && (this.status == 200 || this.status == 201)
+        }
     }
     return data
 }

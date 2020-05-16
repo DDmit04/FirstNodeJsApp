@@ -3,7 +3,7 @@ import session from "express-session";
 const MongoStore = require('connect-mongo')(session);
 require('dotenv').config()
 
-let DBUrl: string = process.env.DB_URL!
+let DBUrl: string = process.env.MONGODB_URI!
 
 export function connectDatabase() {
     mongoose.connect(DBUrl, {
@@ -20,7 +20,7 @@ export function connectDatabase() {
 }
 
 export const sessionStore = new MongoStore({
-    url: process.env.DB_URL,
+    url: process.env.MONGODB_URI,
     autoRemove: 'native',
     ttl: 14 * 24 * 60 * 60
 })

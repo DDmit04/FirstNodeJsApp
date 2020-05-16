@@ -56,48 +56,49 @@ export default new Vuex.Store({
     },
     actions: {
         async addTaskAction({state, commit}, newTask) {
-            if (state.user != null && state.user != '') {
+            let actionSuccess = true
+            if (state.user != null) {
                 const response = await apiRequests.addTask(newTask)
-                if (response.status == 200 || response.status == 201) {
-                    commit('addTaskMutation', response.data)
+                if (!response.ok()) {
+                    actionSuccess = false
                 }
-            } else {
+            }
+            if (actionSuccess) {
                 commit('addTaskMutation', newTask)
             }
         },
         async deleteTaskAction({state, commit}, dateTime) {
+            let actionSuccess = true
             let index = state.tasks.findIndex(task => task.dateTime == dateTime)
-            if (state.user != null && state.user != '' && index != -1) {
+            if (state.user != null && index != -1) {
                 const response = await apiRequests.deleteTask(state.tasks[index]._id)
-                if (response.status == 200) {
-                    commit('deleteTaskMutation', index)
+                if (!response.ok()) {
+                    actionSuccess = false
                 }
-            } else if (index != -1) {
+            }
+            if (actionSuccess && index != -1) {
                 commit('deleteTaskMutation', index)
             }
         },
         async pullAllTasksAction({state, commit}) {
             let taskListResponse = await apiRequests.getTaskList()
-            if (taskListResponse.status == 200 && taskListResponse.data.length > 0) {
+            if (taskListResponse.ok() && taskListResponse.data.length > 0) {
                 commit('initTaskArrayMutation')
-                taskListResponse.data.forEach(t => {
-                    if (!state.tasks.includes(t)) {
-                        commit('addTaskMutation', t)
-                    }
-                })
+                taskListResponse.data
+                    .filter(t => !state.tasks.includes(t))
+                    .forEach(t => commit('addTaskMutation', t))
             }
         },
         async changeTaskTypeAction({state, commit}, {dateTime, newType}) {
+            let actionSuccess = true
             let index = state.tasks.findIndex(task => task.dateTime == dateTime)
-            if (state.user != null && state.user != '' && index != -1) {
+            if (state.user != null && index != -1 && ('_id' in state.tasks[index])) {
                 const response = await apiRequests.changeTaskType(state.tasks[index]._id, newType)
-                if (response.status == 200) {
-                    commit('changeTaskTypeMutation', {
-                        index,
-                        taskType: newType
-                    })
+                if (!response.ok()) {
+                    actionSuccess = false
                 }
-            } else if (index != -1) {
+            }
+            if (actionSuccess && index != -1) {
                 commit('changeTaskTypeMutation', {
                     index,
                     taskType: newType
@@ -106,24 +107,25 @@ export default new Vuex.Store({
         },
         async loginUserWithCommonAction({commit, dispatch}, {username, password}) {
             const response = await userRequests.loginCommon(username, password)
-            if (response.status != null && response.status == 200) {
+            if (response.ok()) {
                 await commit('updateUserMutation', response.data)
                 await dispatch('mergeUserTasks')
             } else {
                 throw response.data
             }
         },
-        async mergeUserTasks({state, dispatch}) {
-            let newTasks = state.tasks.filter(t => !('_id' in t))
-            newTasks.forEach(t => {
-                dispatch('deleteTaskAction', t.dateTime)
-                dispatch('addTaskAction', t)
-            })
+        async mergeUserTasksAction({state, dispatch}) {
+            state.tasks
+                .filter(t => !('_id' in t))
+                .forEach(t => {
+                    dispatch('deleteTaskAction', t.dateTime)
+                    dispatch('addTaskAction', t)
+                })
         },
         async getUserAction({state, commit}) {
             if (state.user == null || state.user == '') {
                 const response = await userRequests.getCurrentUser()
-                if (response.status == 200 && response.data != null) {
+                if (response.ok() && response.data != null) {
                     commit('updateUserMutation', response.data)
                 }
             }

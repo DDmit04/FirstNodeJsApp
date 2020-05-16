@@ -145,16 +145,14 @@
                     password: this.password,
                     passwordConf: this.passwordConf
                 })
-                if (response.status == 200) {
+                if (response.ok()) {
                     this.username = ''
                     this.email = ''
                     this.password = ''
                     this.passwordConf = ''
                     await this.$emit('registred')
                 } else {
-                    this.errorMessage = response.data.errors.map(errObj => {
-                        return errObj.msg
-                    }).join(', ')
+                    this.errorMessage = response.errors
                 }
                 this.btnIsLoading = false
             }
