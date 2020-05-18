@@ -9,7 +9,7 @@
     "express": "nodemon srv/index.ts --watch srv/**",
     "express:run": "node dist/server/index.js",
     "postinstall": "tsc && yarn build",
-    "start": "node dist/server/index.js",
+    "start": "node dist/server/index.js"
   },
   "dependencies": {
     "@hasezoey/typegoose": "^5.9.2",
