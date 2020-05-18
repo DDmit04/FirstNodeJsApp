@@ -7,9 +7,10 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "express": "nodemon srv/index.ts --watch srv/**",
-    "express:run": "node dist/server/index.js",
-    "postinstall": "yarn build && tsc",
-    "start": "node dist/server/index.js"
+    "express:run": "node build/server/index.js",
+    "tsc": "tsc",
+    "start": "node build/server/index.js",
+    "postinstall": "yarn tsc"
   },
   "dependencies": {
     "@hasezoey/typegoose": "^5.9.2",
@@ -26,6 +27,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "express-validator": "^6.5.0",
     "js-cookie": "^2.2.1",
     "moment": "^2.24.0",
     "mongoose": "^5.9.10",
@@ -51,7 +53,6 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
-    "express-validator": "^6.4.0",
     "nodemon": "^2.0.3",
     "sass": "^1.19.0",
     "sass-loader": "^8.0.0",

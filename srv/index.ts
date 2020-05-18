@@ -59,7 +59,7 @@ app.use(logErrors);
 app.use(errorHandler);
 
 app.get("/", (req: Request, res: Response) => {
-    res.sendFile(path.resolve("dist/", "index.html"))
+    res.sendFile(path.resolve("build/", "index.html"))
 })
 
 app.use('/auth', loginController.routerMethods)
@@ -70,5 +70,5 @@ app.get("*", (req: Request, res: Response, next: Function) => {
     res.redirect('/')
 })
 
-let PORT = process.env.SERVER_PORT || 3000
+let PORT = process.env.PORT || 3000
 app.listen(PORT, () => console.log(`running on ${PORT}...`))
