@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint",
     "express": "nodemon srv/index.ts --watch srv/**",
     "express:run": "node dist/server/index.js",
-    "postinstall": "tsc && yarn install &&  yarn build",
+    "postinstall": "yarn install && tsc &&  yarn build",
     "start": "node dist/server/index.js"
   },
   "dependencies": {
