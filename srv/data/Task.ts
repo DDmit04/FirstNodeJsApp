@@ -19,15 +19,35 @@ export class Task {
     taskText: string = "no text"
 
     @prop({required: true})
-    readonly dateTime: Date
+    readonly creationDate: Date
+
+    @prop({required: true})
+    localStored: boolean
+
+    @prop({required: false})
+    continuedDate: Date
+
+    @prop({required: false})
+    completedDate: Date
+
+    @prop({required: false})
+    stoppedDate: Date
+
+    @prop({required: false})
+    discardedDate: Date
 
     @prop({required: true})
     taskType: TaskType = TaskType.CURRENT
 
-    constructor(started: Date, taskText: string, taskType: TaskType) {
-        this.dateTime = started;
-        this.taskText = taskText;
-        this.taskType = taskType;
+    constructor(creationDate: Date, taskText: string, taskType: TaskType) {
+        this.creationDate = creationDate
+        this.continuedDate = creationDate
+        this.stoppedDate = creationDate
+        this.completedDate = creationDate
+        this.discardedDate = creationDate
+        this.taskText = taskText
+        this.taskType = taskType
+        this.localStored = false
     }
 
     static findByType(this: ModelType<Task>, taskType: TaskType) {
