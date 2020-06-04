@@ -11,10 +11,9 @@ import express, {Application, Request, Response} from 'express'
 import {logErrors, logEvents} from "./serverUtils/loggers"
 import {errorHandler} from "./serverUtils/Handlers"
 import {connectDatabase, sessionStore} from "./serverUtils/DatabaseConnect"
-import {MainController} from "./controllers/MainController"
+import {TaskController} from "./controllers/TaskController"
 import {AbstractController} from "./controllers/AbstractController"
 import {LoginController} from "./controllers/LoginController"
-import {User} from "./data/User"
 import {UserController} from "./controllers/UserController";
 
 
@@ -31,7 +30,7 @@ app.all('/*', function(req, res, next) {
     next();
 });
 
-const mainController: AbstractController = new MainController()
+const mainController: AbstractController = new TaskController()
 const loginController: AbstractController = new LoginController()
 const userController: AbstractController = new UserController()
 

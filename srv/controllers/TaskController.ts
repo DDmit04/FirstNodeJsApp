@@ -4,7 +4,7 @@ import {taskActionValidate, taskAddValidate, taskDeleteValidate, validateRequest
 import {AbstractController} from "./AbstractController";
 import {User, UserModel} from "../data/User";
 
-export class MainController extends AbstractController {
+export class TaskController extends AbstractController {
 
     constructor() {
         super();
@@ -29,7 +29,7 @@ export class MainController extends AbstractController {
     private async addTask(req: Request, res: Response) {
         let taskType: TaskType = TaskType[req.body.taskType as keyof typeof TaskType]
         let taskText: string = req.body.taskText
-        let taskCreationDate: Date = req.body.dateTime
+        let taskCreationDate: Date = req.body.creationDate
         let newTask = new Task(taskCreationDate, taskText, taskType)
         let createdTask = await TaskModel.create(newTask)
         if (req.user != null) {
@@ -51,7 +51,20 @@ export class MainController extends AbstractController {
     }
 
     private async patchTask(req: Request, res: Response) {
-        let task = await TaskModel.findByIdAndUpdate({_id: req.body.id}, {taskType: req.body.newTaskType as TaskType}, {new: true})
+        let dateFieldToUpdate = 'continuedDate'
+        let date = new Date()
+        if (req.body.newTaskType == TaskType.CURRENT) {
+            dateFieldToUpdate = 'continuedDate'
+        } else if (req.body.newTaskType == TaskType.STOPPED) {
+            dateFieldToUpdate = 'stoppedDate'
+        } else if (req.body.newTaskType == TaskType.DISCARDED) {
+            dateFieldToUpdate = 'discardedDate'
+        } else if (req.body.newTaskType == TaskType.COMPLETED) {
+            dateFieldToUpdate = 'completedDate'
+        }
+        let task = await TaskModel.findByIdAndUpdate({_id: req.body.id}, {taskType: req.body.newTaskType as TaskType, [dateFieldToUpdate]: date}, {new: true}).catch(() => {
+            res.json({errors: [{msg: "data base error!"}]})
+        })
         res.json(task)
     }
 }

@@ -15,25 +15,46 @@
                     <div class="title white--text">
                         {{task.taskText}}
                         <v-divider class="my-2"></v-divider>
-                        Created: {{getTime(task.dateTime)}}
+                        <div v-show="task.taskType == 'CURRENT'">
+                            Created: {{getTimeForNow(task.creationDate)}}
+                        </div>
+                        {{getTimeLabel(task.taskType)}} {{getTime(task)}}
                     </div>
                     <v-divider class="ma-2"></v-divider>
                     <v-card-actions>
-                        <div v-if="listType == 'CURRENT'">
-                            <v-btn color="success" class="mr-2" @click="completeTask(task.dateTime)">Complete</v-btn>
-                            <v-btn color="warning" class="mr-2" @click="stopTask(task.dateTime)">Stop</v-btn>
-                            <v-btn color="error" class="mr-2" @click="discardTask(task.dateTime)">Discard</v-btn>
+                        <div v-show="listType == 'CURRENT'">
+                            <v-btn color="success" class="mr-2" @click="changeTaskStatus(task.creationDate, 'COMPLETED')">
+                                Complete
+                            </v-btn>
+                            <v-btn color="warning" class="mr-2" @click="changeTaskStatus(task.creationDate, 'STOPPED')">
+                                Stop
+                            </v-btn>
+                            <v-btn color="error" class="mr-2" @click="changeTaskStatus(task.creationDate, 'DISCARDED')">
+                                Discard
+                            </v-btn>
                         </div>
-                        <div v-else-if="listType == 'COMPLETED'">
-                            <v-btn color="error" class="mr-2" @click="deleteTask(task.dateTime)">Delete</v-btn>
+                        <div v-show="listType == 'COMPLETED'">
+                            <v-btn color="error" class="mr-2" @click="deleteTask(task.creationDate)">Delete</v-btn>
                         </div>
-                        <div v-else-if="listType == 'STOPPED'">
-                            <v-btn color="success" class="mr-2" @click="continueTask(task.dateTime)">Continue</v-btn>
-                            <v-btn color="error" class="mr-2" @click="discardTask(task.dateTime)">Discard</v-btn>
+                        <div v-show="listType == 'STOPPED'">
+                            <v-btn color="success" class="mr-2" @click="changeTaskStatus(task.creationDate, 'CURRENT')">
+                                Continue
+                            </v-btn>
+                            <v-btn color="error" class="mr-2" @click="changeTaskStatus(task.creationDate, 'DISCARDED')">
+                                Discard
+                            </v-btn>
                         </div>
-                        <div v-else-if="listType == 'DISCARDED'">
-                            <v-btn color="error" class="mr-2" @click="deleteTask(task.dateTime)">Delete</v-btn>
+                        <div v-show="listType == 'DISCARDED'">
+                            <v-btn color="error" class="mr-2" @click="deleteTask(task.creationDate)">Delete</v-btn>
                         </div>
+                        <v-progress-circular
+                                v-show="taskProcessLoading"
+                                class="my-3"
+                                :size="35"
+                                :width="7"
+                                color="white"
+                                indeterminate
+                        />
                     </v-card-actions>
                 </v-card-text>
             </v-card>
@@ -43,7 +64,7 @@
                 No tasks
             </v-layout>
         </div>
-        <v-snackbar v-model="snackbar" :timeout="timeout" color="success">
+        <v-snackbar v-model="snackbar" :timeout="timeout" :color="snackbarColor">
             {{ snackbarText }}
         </v-snackbar>
     </div>
@@ -64,13 +85,15 @@
         data() {
             return {
                 listLoading: true,
+                taskProcessLoading: false,
                 snackbar: false,
                 timeout: 2000,
-                snackbarText: 'no message'
+                snackbarText: 'no message',
+                snackbarColor: 'success'
             }
         },
         async mounted() {
-            if(this.user == null) {
+            if (this.user == null) {
                 this.listLoading = false
             } else {
                 await this.pullAllTasksAction()
@@ -79,7 +102,7 @@
         },
         watch: {
             async user(newVal) {
-                if(newVal != null) {
+                if (newVal != null) {
                     this.listLoading = true
                     await this.pullAllTasksAction()
                     this.listLoading = false
@@ -92,34 +115,61 @@
         },
         methods: {
             ...mapActions(['changeTaskTypeAction', 'deleteTaskAction', 'pullAllTasksAction']),
-            async completeTask(dateTime) {
-                await this.changeTaskTypeAction({dateTime, newType: 'COMPLETED'})
-                this.snackbarText = 'Moved to "completed" successfuly!'
+            async changeTaskStatus(creationDate, newType) {
+                this.taskProcessLoading = true
+                try {
+                    await this.changeTaskTypeAction({creationDate, newType})
+                    this.snackbarColor = 'success'
+                    this.snackbarText = `Moved to ${newType} successfuly!`
+                } catch (e) {
+                    this.snackbarColor = 'error'
+                    this.snackbarText = `Moving to ${newType} error!`
+                }
                 this.snackbar = true
-            },
-            async stopTask(dateTime) {
-                await this.changeTaskTypeAction({dateTime, newType: 'STOPPED'})
-                this.snackbarText = 'Moved to "stoped" successfuly!'
-                this.snackbar = true
-            },
-            async continueTask(dateTime) {
-                await this.changeTaskTypeAction({dateTime, newType: 'CURRENT'})
-                this.snackbarText = 'Moved to "current" successfuly!'
-                this.snackbar = true
-            },
-            async discardTask(dateTime) {
-                await this.changeTaskTypeAction({dateTime, newType: 'DISCARDED'})
-                this.snackbarText = 'Moved to "discarded" successfuly!'
-                this.snackbar = true
+                this.taskProcessLoading = false
             },
             async deleteTask(dateTime) {
-                await this.deleteTaskAction(dateTime)
-                this.snackbarText = 'Deleted successfuly!'
+                this.taskProcessLoading = true
+                try {
+                    await this.deleteTaskAction(dateTime)
+                    this.snackbarColor = 'success'
+                    this.snackbarText = 'Deleted successfuly!'
+                } catch (e) {
+                    this.snackbarColor = 'error'
+                    this.snackbarText = `Delete error!`
+                }
                 this.snackbar = true
+                this.taskProcessLoading = false
             },
-            getTime(dateTime) {
-                dateTime = this.$moment(dateTime)
+            getTimeLabel(type) {
+                let label
+                if(type == "CURRENT") {
+                    label = "Continued:"
+                } else if(type == "STOPPED") {
+                    label = "Stopped:"
+                } else if(type == "DISCARDED") {
+                    label = "Discarded:"
+                } else if(type == "COMPLETED") {
+                    label = "Completed:"
+                }
+                return label
+            },
+            getTimeForNow(time) {
+                let dateTime = this.$moment(time)
                 return dateTime.fromNow()
+            },
+            getTime(task) {
+                let time
+                if(task.taskType == "CURRENT") {
+                    time = task.continuedDate
+                } else if(task.taskType == "STOPPED") {
+                    time = task.stoppedDate
+                } else if(task.taskType == "DISCARDED") {
+                    time = task.discardedDate
+                } else if(task.taskType == "COMPLETED") {
+                    time = task.completedDate
+                }
+                return this.getTimeForNow(time)
             },
         }
     }

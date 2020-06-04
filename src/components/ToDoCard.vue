@@ -9,16 +9,24 @@
         <v-card-text>
             <v-tabs v-model="tab" background-color="red lighten-1" grow>
                 <v-tab class="white--text">
-                    Current tasks
+                    <v-badge color="green" :content="currentTasksLength + ''">
+                        Current tasks
+                    </v-badge>
                 </v-tab>
                 <v-tab class="white--text">
-                    Completed tasks
+                    <v-badge color="green" :content="completedTasksLength + ''">
+                        Completed tasks
+                    </v-badge>
                 </v-tab>
                 <v-tab class="white--text">
-                    Stoped tasks
+                    <v-badge color="green" :content="stoppedTasksLength + ''">
+                        Stoped tasks
+                    </v-badge>
                 </v-tab>
                 <v-tab class="white--text">
-                    Discarded tasks
+                    <v-badge color="green" :content="discardedTasksLength + ''">
+                        Discarded tasks
+                    </v-badge>
                 </v-tab>
             </v-tabs>
             <v-tabs-items v-model="tab" class="indigo accent-2">
@@ -52,7 +60,19 @@
         },
         computed: {
             ...mapState(['chosenTab']),
-            ...mapGetters(['getCurrentTasks', 'getCompletedTasks', 'getStopedTasks', 'getDiscardedTasks']),
+            ...mapGetters(['getTasks']),
+            currentTasksLength() {
+                return this.getTasks('CURRENT').length
+            },
+            stoppedTasksLength() {
+                return this.getTasks('STOPPED').length
+            },
+            completedTasksLength() {
+                return this.getTasks('COMPLETED').length
+            },
+            discardedTasksLength() {
+                return this.getTasks('DISCARDED').length
+            },
             tab: {
                 get() {
                     return this.chosenTab

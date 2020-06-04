@@ -4,6 +4,7 @@ import {Request, Response, NextFunction} from 'express';
 const taskAddValidate = () => {
     return [
         body('taskText').notEmpty().withMessage("Task text is required!"),
+        body('creationDate').notEmpty().withMessage("Task creation date is empty!"),
         body('taskType').notEmpty().withMessage("Task type is required!")
     ]
 }

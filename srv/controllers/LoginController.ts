@@ -13,7 +13,7 @@ export class LoginController extends AbstractController {
 
     protected initMethods(): void {
         this.router.post('/login', userLoginValidate(), validateRequest,
-            passport.authenticate('local', { failureRedirect: '/auth/login/error' }), this.loginCommon)
+            passport.authenticate('local', {failureRedirect: '/auth/login/error'}), this.loginCommon)
         this.router.get('/login/error', this.failCommonLogin)
         this.router.get('/login/google', passport.authenticate('google'))
         this.router.get('/login/google/callback', passport.authenticate('google'), this.loginWithGoogleCallback)
@@ -30,7 +30,7 @@ export class LoginController extends AbstractController {
 
     private failCommonLogin(req: Request, res: Response, next: Function) {
         res.status(401)
-        res.json("Wrong username or password!")
+        res.json({errors: [{msg: "Wrong username or password!"}]})
     }
 
     private logout(req: Request, res: Response, next: Function) {

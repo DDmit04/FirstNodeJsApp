@@ -6,7 +6,9 @@ export function convertResponse(response) {
         data: response.data,
         status: response.status,
         statusText: response.statusText,
-        errors:  (response.data && response.data.errors) ? response.data.errors.map(errObj => errObj.msg).join(', ') : '',
+        errors: function () {
+            return (this.data && this.data.errors) ? this.data.errors.map(errObj => errObj.msg).join(', ') : ''
+        },
         ok: function () {
             return (this.statusText === 'OK' || this.statusText === 'Created')
                 && (this.status == 200 || this.status == 201)
@@ -28,12 +30,12 @@ export default {
         return data
     },
     changeTaskType: async (id, newTaskType) => {
-        const response = await axios.patch('/api', { id, newTaskType })
+        const response = await axios.patch('/api', {id, newTaskType})
         const data = convertResponse(response)
         return data
     },
     deleteTask: async (id) => {
-        const response = await axios.delete('/api', { params: { id } })
+        const response = await axios.delete('/api', {params: {id}})
         const data = convertResponse(response)
         return data
     },

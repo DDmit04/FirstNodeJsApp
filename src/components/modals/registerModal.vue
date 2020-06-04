@@ -152,7 +152,7 @@
                     this.passwordConf = ''
                     await this.$emit('registred')
                 } else {
-                    this.errorMessage = response.errors
+                    this.errorMessage = response.errors()
                 }
                 this.btnIsLoading = false
             }
